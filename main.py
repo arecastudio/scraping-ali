@@ -106,7 +106,7 @@ def womanDetail(link):
         if x is not None:
             _review_num=x.text
         else:
-            _review_num=''
+            _review_num='0'
 
         my_dictionary={
         'product_name':_product_name,
