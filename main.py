@@ -76,18 +76,19 @@ def womanDetail(link):
             _shop_name=x.text
         else:
             _shop_name=''
-            
-        x=soup.find('a',class_='store-lnk').get('href')
+
+        _shop_url=''
+        x=soup.find('a',class_='store-lnk')
         if x is not None:
-            _shop_url=x
-        else:
-            _shop_url=''
-        x=soup.find('span',id='j-wishlist-num')
-        
+            xx=x.get('href')
+            if xx is not None:
+                _shop_url=xx
+
+        x=soup.find('span',id='j-wishlist-num')        
         if x is not None:
             _wishlist_num=x.text
         else:
-            _wishlist_num=''
+            _wishlist_num='0'
 
         _brand_name=''
         x=soup.find('li',id='product-prop-2')
@@ -102,6 +103,8 @@ def womanDetail(link):
             xx=x.find('img')#.get('src')
             if xx is not None:
                 _image=xx.get('src')
+                if _image is None:
+                    _image=xx.get('image-src')
 
         _cat=''
         x=soup.find('div',class_='ui-breadcrumb')
@@ -112,7 +115,7 @@ def womanDetail(link):
                 if xxx is not None:
                     xxxx=xxx.find('a')
                     if xxxx is not None:
-                        _cat=x.text
+                        _cat=xxxx.text
 
         x=soup.find('span',id='j-order-num')
         if x is not None:
@@ -126,19 +129,25 @@ def womanDetail(link):
         else:
             _review_num='0'
 
+        _review_score='0'
+        x=soup.find('span',class_='percent-num')
+        if x is not None:
+            _review_score=x.text
+
         my_dictionary={
-        'product_name':_product_name,
-        'price_symbol':_price_symbol,
-        'price':_price,
-        'disc_price':_disc_price,
-        'shop_name':_shop_name,
-        'shop_url':urs+_shop_url,
-        'wishlist_num':_wishlist_num,
-        'brand_name':_brand_name,
-        'image':_image,
-        'cat':_cat,
-        'order_num':_order_num.replace("orders","").replace("order","").strip(),
-        'review_num':_review_num.replace("(","").replace("votes)","").strip()
+            'product_name':_product_name,
+            'price_symbol':_price_symbol,
+            'price':_price,
+            'disc_price':_disc_price,
+            'shop_name':_shop_name,
+            'shop_url':urs+_shop_url,
+            'wishlist_num':_wishlist_num,
+            'brand_name':_brand_name,
+            'image':_image,
+            'cat':_cat,
+            'order_num':_order_num.replace("orders","").replace("order","").strip(),
+            'review_num':_review_num.replace("(","").replace("votes)","").strip(),
+            'review_score':_review_score
         }
         #print('name'+_product_name)
         #print('symbol'+_price_symbol)
@@ -174,7 +183,9 @@ def produceLinks():
         #scrapeMe(link)
 
     for link in links:
+        print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
         print(link)
+        print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')        
         #scrapeMe(link)
         produceSubLinks(link)
 
@@ -200,6 +211,7 @@ def produceSubLinks(link):
         try:
             #print(page_url)
             dct=womanDetail(page_url)
+            print(dct["shop_name"])
             writer.writerow([
                 page_url,
                 dct["product_name"],
@@ -210,7 +222,7 @@ def produceSubLinks(link):
                 dct["price"],
                 dct["cat"],
                 dct["review_num"],
-                dct["review_num"],
+                dct["review_score"],
                 dct["order_num"]
             ])
         except Exception as e:
