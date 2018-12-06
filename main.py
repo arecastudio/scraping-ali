@@ -135,14 +135,14 @@ def womanDetail(link):
             _review_score=x.text
 
         my_dictionary={
-            'product_name':_product_name,
+            'product_name':_product_name.strip().replace(";"," "),
             'price_symbol':_price_symbol,
             'price':_price,
             'disc_price':_disc_price,
-            'shop_name':_shop_name,
+            'shop_name':_shop_name.strip().replace(";"," "),
             'shop_url':urs+_shop_url,
             'wishlist_num':_wishlist_num,
-            'brand_name':_brand_name,
+            'brand_name':_brand_name.strip().replace(";"," "),
             'image':_image,
             'cat':_cat,
             'order_num':_order_num.replace("orders","").replace("order","").strip(),
