@@ -52,56 +52,74 @@ def womanDetail(link):
             _product_name=x.text
         else:
             _product_name=''
+            
         x=soup.find('span',class_='p-symbol')
         if x is not None:
             _price_symbol=x.text
         else:
             _price_symbol=''
+            
         x=soup.find('span',id='j-sku-price')
         if x is not None:
             _price=x.text
         else:
             _price=''
+            
         x=soup.find('span',id='j-sku-discount-price')
         if x is not None:
             _disc_price=x.text
         else:
             _disc_price=''
+            
         x=soup.find('a',class_='store-lnk')
         if x is not None:
             _shop_name=x.text
         else:
             _shop_name=''
+            
         x=soup.find('a',class_='store-lnk').get('href')
         if x is not None:
             _shop_url=x
         else:
             _shop_url=''
         x=soup.find('span',id='j-wishlist-num')
+        
         if x is not None:
             _wishlist_num=x.text
         else:
             _wishlist_num=''
-        x=soup.find('li',id='product-prop-2').find('span',class_='propery-des')
+
+        _brand_name=''
+        x=soup.find('li',id='product-prop-2')
         if x is not None:
-            _brand_name=x.text
-        else:
-            _brand_name=''
-        x=soup.find('a',class_='ui-image-viewer-thumb-frame').find('img').get('src')
+            xx=x.find('span',class_='propery-des')
+            if xx is not None:
+                _brand_name=xx.text
+
+        _image=''
+        x=soup.find('a',class_='ui-image-viewer-thumb-frame')
         if x is not None:
-            _image=x
-        else:
-            _image=''
-        x=soup.find('div',class_='ui-breadcrumb').find('div',class_='container').find('h2').find('a')
+            xx=x.find('img')#.get('src')
+            if xx is not None:
+                _image=xx.get('src')
+
+        _cat=''
+        x=soup.find('div',class_='ui-breadcrumb')
         if x is not None:
-            _cat=x.text
-        else:
-            _cat=''
+            xx=x.find('div',class_='container')
+            if xx is not None:
+                xxx=xx.find('h2')
+                if xxx is not None:
+                    xxxx=xxx.find('a')
+                    if xxxx is not None:
+                        _cat=x.text
+
         x=soup.find('span',id='j-order-num')
         if x is not None:
             _order_num=x.text
         else:
             _order_num=''
+            
         x=soup.find('span',class_='rantings-num')
         if x is not None:
             _review_num=x.text
@@ -119,7 +137,7 @@ def womanDetail(link):
         'brand_name':_brand_name,
         'image':_image,
         'cat':_cat,
-        'order_num':_order_num.replace("orders","").strip(),
+        'order_num':_order_num.replace("orders","").replace("order","").strip(),
         'review_num':_review_num.replace("(","").replace("votes)","").strip()
         }
         #print('name'+_product_name)
@@ -157,33 +175,33 @@ def produceLinks():
 
     for link in links:
         print(link)
-        scrapeMe(link)
+        #scrapeMe(link)
+        produceSubLinks(link)
 
-def scrapeMe(link):
+def produceSubLinks(link):
+    result=[]
     req=requests.get(link).text
     soup=BeautifulSoup(req,'lxml')
-    
-    items=soup.find_all('div',class_='item')
-    for item in items:
-        a=item.find('div',class_='img img-border').find('div',class_='pic').find('a',class_='picRind')
-        img=a.find('img',class_='picCore').get('image-src')
-        if img is None:
-            img=a.find('img',class_='picCore').get('src')
+    try:
+        urls=soup.find_all('div',class_='item')
+        for item in urls:
+            _url=item.find('a',class_='product')
+            if _url is not None:
+                _ur=urs+_url.get('href')
+                result.append(_ur)
+            else:
+                _ur=''
+    except Exception as e:
+        print('----------------------------------------------------')
+        print('Error: ',str(e))
+        print('----------------------------------------------------')        
+        
+    for page_url in result:
         try:
-            #print('\n\n---------------------------------------------------------------------------------------------------')
-            #print('https:'+a.get('href').strip())
-            #print(img.get('alt'),'\n','https:'+img.get('image-src'))
-            ##print(img)
-            #_name=str(item.find('div',class_='info').find('h3').find('a').text)
-            #_store=str(item.find('div',class_='info-more').find('div',class_='store-name-chat').find('div',class_='store-name util-clearfix').find('a').text)
-            _url="https:"+str(a.get('href')).strip()
-            #print(_url)
-            dct=womanDetail(_url)
-            _image_url="https:"+str(img)
-            #print(dct)
-            #writer.writerow([ _name, _store, _url, _image_url ])
+            #print(page_url)
+            dct=womanDetail(page_url)
             writer.writerow([
-                _url,
+                page_url,
                 dct["product_name"],
                 dct["shop_name"],
                 dct["wishlist_num"],
@@ -195,6 +213,52 @@ def scrapeMe(link):
                 dct["review_num"],
                 dct["order_num"]
             ])
+        except Exception as e:
+            print('----------------------------------------------------')
+            print('Error: ',str(e))
+            print('----------------------------------------------------')
+
+
+
+        
+def scrapeMe(link):
+    req=requests.get(link).text
+    soup=BeautifulSoup(req,'lxml')
+    
+    items=soup.find_all('div',class_='item')
+    for item in items:
+        #TODO: Jangan ambil products link dari gambar, ambil dari title
+        a=item.find('div',class_='img img-border').find('div',class_='pic').find('a',class_='picRind')
+        img=a.find('img',class_='picCore').get('image-src')
+        if img is None:
+            img=a.find('img',class_='picCore').get('src')
+        try:
+            _url=urs+item.find('a',class_='product').get('href')
+            #print('\n\n---------------------------------------------------------------------------------------------------')
+            #print('https:'+a.get('href').strip())
+            #print(img.get('alt'),'\n','https:'+img.get('image-src'))
+            ##print(img)
+            #_name=str(item.find('div',class_='info').find('h3').find('a').text)
+            #_store=str(item.find('div',class_='info-more').find('div',class_='store-name-chat').find('div',class_='store-name util-clearfix').find('a').text)
+            #_url="https:"+str(a.get('href')).strip()
+            #print(_url)
+            dct=womanDetail(_url)
+            _image_url="https:"+str(img)
+            #print(dct)
+            #writer.writerow([ _name, _store, _url, _image_url ])
+#            writer.writerow([
+#                _url,
+#                dct["product_name"],
+#                dct["shop_name"],
+#                dct["wishlist_num"],
+#                dct["brand_name"],
+#                dct["image"],
+#                dct["price"],
+#                dct["cat"],
+#                dct["review_num"],
+#                dct["review_num"],
+#                dct["order_num"]
+#            ])
         except Exception as e:
             print('###############################')
             print('Error desc: ',str(e))
